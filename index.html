@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Speak More!</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#2E4FD1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2F7; --surface:#FFFFFF; --ink:#18202E; --muted:#5E6878; --line:#D6DDE7;
+  --primary:#2E4FD1; --primary-ink:#FFFFFF; --soft:#E2E8FB;
+  --ok:#17804F; --ok-bg:#DDF3E7; --miss:#C33A31; --miss-bg:#FBE2DF; --extra:#8A6A12; --extra-bg:#F6ECCB;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#10151F; --surface:#1A2130; --ink:#E8EDF5; --muted:#9AA5B6; --line:#2C3547;
+    --primary:#7C95FF; --primary-ink:#0E1320; --soft:#222C45;
+    --ok:#5FD39A; --ok-bg:#173527; --miss:#FF8A80; --miss-bg:#3A1D1C; --extra:#E8C766; --extra-bg:#3A311A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10151F; --surface:#1A2130; --ink:#E8EDF5; --muted:#9AA5B6; --line:#2C3547;
+  --primary:#7C95FF; --primary-ink:#0E1320; --soft:#222C45;
+  --ok:#5FD39A; --ok-bg:#173527; --miss:#FF8A80; --miss-bg:#3A1D1C; --extra:#E8C766; --extra-bg:#3A311A;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  line-height:1.55;-webkit-font-smoothing:antialiased}
+main{max-width:560px;margin:0 auto;padding:18px 18px 48px}
+h1{font-size:1.7rem;line-height:1.2;margin:8px 0 2px;letter-spacing:-.01em}
+h2{font-size:1.15rem;margin:0 0 12px}
+h3{font-size:.95rem;font-weight:500;color:var(--muted);margin:22px 0 8px}
+p{margin:0}
+.sub{color:var(--muted);font-size:.92rem}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;min-height:40px}
+.link{border:0;background:none;color:var(--primary);font:inherit;font-weight:500;padding:8px 0;cursor:pointer}
+.btn{border:0;background:var(--primary);color:var(--primary-ink);font:inherit;font-weight:700;padding:13px 18px;border-radius:14px;cursor:pointer;width:100%}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line);font-weight:500}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.chip{border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:.9rem;padding:7px 13px;border-radius:999px;cursor:pointer}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+label{display:block;font-size:.9rem;color:var(--muted);margin:14px 0 6px}
+input[type=text],input[type=url],textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+textarea{min-height:150px;resize:vertical}
+.msg{margin-top:10px;font-size:.92rem;color:var(--miss);min-height:1.4em}
+
+/* 홈 */
+.stats{display:flex;gap:18px;margin:14px 0 4px;flex-wrap:wrap}
+.stat b{display:block;font-size:1.35rem;line-height:1.2}
+.stat span{font-size:.82rem;color:var(--muted)}
+.scope{margin-top:16px}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.item .en{font-weight:500}
+.item .ko{color:var(--muted);font-size:.93rem}
+.meta{font-size:.8rem;color:var(--muted);margin-top:6px}
+.meta .low{color:var(--miss);font-weight:500}
+.acts{display:flex;gap:14px;margin-top:8px}
+.acts button{border:0;background:none;color:var(--primary);font:inherit;font-size:.88rem;padding:4px 0;cursor:pointer}
+.acts button.del{color:var(--muted)}
+details{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+summary{cursor:pointer;font-size:.88rem;color:var(--muted)}
+.child{padding:8px 0 8px 12px;border-left:3px solid var(--soft);margin-top:8px}
+.child .en{font-weight:400}
+.empty{text-align:center;padding:28px 16px;color:var(--muted)}
+
+/* 등록 미리보기 */
+.prev-row{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
+.prev-row input{padding:8px 10px;font-size:.93rem}
+.prev-row .pair{display:flex;flex-direction:column;gap:6px}
+.prev-row .x{border:0;background:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px 8px}
+.group-title{font-size:.88rem;color:var(--muted);margin:16px 0 0}
+.check{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.check input{margin-top:5px;width:18px;height:18px}
+
+/* 연습 */
+.badge{display:inline-block;font-size:.78rem;padding:2px 9px;border-radius:999px;background:var(--soft);color:var(--primary);margin-bottom:10px}
+.p-ko{font-size:1.35rem;font-weight:700;line-height:1.45;word-break:keep-all}
+.p-en{font-size:1.15rem;margin-top:12px;min-height:1.6em}
+.p-en.hidden{color:var(--muted);font-size:.95rem}
+.mic-area{display:flex;flex-direction:column;align-items:center;margin:26px 0 6px}
+.mic{width:92px;height:92px;border-radius:50%;border:0;background:var(--primary);color:var(--primary-ink);cursor:pointer;display:grid;place-items:center;position:relative}
+.mic svg{width:36px;height:36px}
+.mic.listening::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:3px solid var(--primary);animation:ring 1.2s ease-out infinite}
+@keyframes ring{from{opacity:.8;transform:scale(.9)}to{opacity:0;transform:scale(1.25)}}
+@media (prefers-reduced-motion:reduce){.mic.listening::after{animation:none;opacity:.6}}
+.mic:disabled{opacity:.4;cursor:not-allowed}
+.mic-label{margin-top:12px;color:var(--muted);font-size:.93rem;text-align:center;min-height:1.5em}
+.live{margin-top:4px;font-size:1.02rem;text-align:center;min-height:1.6em}
+.result{margin-top:14px}
+.verdict{font-weight:700;margin-bottom:10px}
+.words{display:flex;flex-wrap:wrap;gap:6px}
+.w{padding:3px 9px;border-radius:8px}
+.w.ok{background:var(--ok-bg);color:var(--ok)}
+.w.miss{background:var(--miss-bg);color:var(--miss);text-decoration:underline;text-decoration-thickness:2px}
+.w.extra{background:var(--extra-bg);color:var(--extra);text-decoration:line-through}
+.w.blank{background:var(--miss-bg);color:var(--miss);letter-spacing:.1em}
+.heard{margin-top:10px;color:var(--muted);font-size:.9rem}
+.mini{margin:14px 0 0;padding-left:1.3em;font-size:.88rem;color:var(--muted)}
+.nav{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:22px}
+
+/* 결과 */
+.res-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.res-row .sc{font-weight:700;white-space:nowrap}
+.res-row .sc.low{color:var(--miss)}
+
+/* 보호자 */
+.chart{display:flex;align-items:flex-end;gap:4px;height:150px;padding:14px 12px 8px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.bar{width:100%;max-width:22px;border-radius:5px 5px 2px 2px;background:var(--primary);min-height:2px}
+.bar.zero{background:var(--line)}
+.bar-col small{font-size:.66rem;color:var(--muted);margin-top:5px;white-space:nowrap}
+.bar-col small.today{color:var(--ink);font-weight:700}
+.chart-note{font-size:.8rem;color:var(--muted);margin-top:6px}
+/* PIN */
+.pin-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:6vh}
+.pin-wrap h1{margin-bottom:6px}
+.dots{display:flex;gap:16px;margin:28px 0 10px}
+.dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink)}
+.dot.on{background:var(--ink)}
+.dots.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@media (prefers-reduced-motion:reduce){.dots.shake{animation:none}}
+.pin-msg{min-height:1.5em;font-size:.93rem;color:var(--miss)}
+.keypad{display:grid;grid-template-columns:repeat(3,76px);gap:14px 22px;margin-top:18px}
+.key{width:76px;height:76px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:1.6rem;cursor:pointer}
+.key:active{background:var(--soft)}
+.key.fn{border:0;background:none;font-size:1rem;color:var(--muted)}
+.key:disabled{opacity:.4}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--surface);color:var(--ink);padding:20px;width:min(92vw,480px)}
+dialog::backdrop{background:rgba(10,14,22,.45)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.92rem;z-index:20;max-width:90vw}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ========== PIN ========== -->
+<section class="view" id="pin" hidden>
+  <div class="pin-wrap">
+    <h1>Speak More!</h1>
+    <p class="sub">PIN 4자리를 눌러 주세요</p>
+    <div class="dots" id="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <p class="pin-msg" id="pinMsg" aria-live="polite"></p>
+    <div class="keypad" id="keypad">
+      <button class="key">1</button><button class="key">2</button><button class="key">3</button>
+      <button class="key">4</button><button class="key">5</button><button class="key">6</button>
+      <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+      <button class="key fn" data-k="reset">다른 시트</button><button class="key">0</button><button class="key fn" data-k="del" aria-label="지우기">지우기</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 연결 필요 ========== -->
+<section class="view" id="setup" hidden>
+  <h1>Speak More!</h1>
+  <p class="sub" style="margin-top:6px">영어 말하기 연습</p>
+  <div class="card" style="margin-top:22px">
+    <h2>연결 링크로 열어 주세요</h2>
+    <p>내 구글 시트의 <b>설정</b> 탭에 있는 <b>내 연결 링크</b>를 이 기기에서 한 번 열면 바로 연결돼요. 그다음부터는 PIN만 누르면 돼요.</p>
+  </div>
+  <details style="margin-top:18px;border:0">
+    <summary>링크 대신 주소를 직접 넣기</summary>
+    <label for="cfgUrl">웹 앱 주소</label>
+    <input type="url" id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <div style="margin-top:14px"><button class="btn" id="connect">다음</button></div>
+  </details>
+  <p class="msg" id="setupMsg"></p>
+</section>
+
+<!-- ========== 로딩 ========== -->
+<section class="view" id="loading"><p class="empty">표현을 불러오는 중이에요…</p></section>
+
+<!-- ========== 보호자 보기 ========== -->
+<section class="view" id="parent" hidden>
+  <div class="top"><span class="sub">보호자 보기</span><button class="link" id="lockParent">잠그기</button></div>
+  <h1>Speak More!</h1>
+  <p class="sub">최근 7일 학습 요약</p>
+  <div class="stats" id="pStats"></div>
+
+  <h3>최근 14일 학습 시간</h3>
+  <div class="card chart" id="pChart" role="img"></div>
+  <p class="chart-note" id="pChartNote"></p>
+
+  <h3>최근 테스트</h3>
+  <div id="pTests"></div>
+
+  <h3>다시 연습할 표현</h3>
+  <div id="pWeak"></div>
+
+  <h3>주간 알림</h3>
+  <div class="card">
+    <p id="notifyStatus"></p>
+    <div class="btns">
+      <button class="btn" id="notifyBtn">알림 받기</button>
+      <button class="btn ghost" id="notifyTest">테스트 알림</button>
+    </div>
+  </div>
+  <div style="margin-top:14px"><button class="btn ghost" id="pRefresh">새로고침</button></div>
+</section>
+
+<!-- ========== 홈 ========== -->
+<section class="view" id="home" hidden>
+  <div class="top"><span></span><button class="link" id="toSetup">잠그기</button></div>
+  <h1>Speak More!</h1>
+  <p class="sub">영어 말하기 연습</p>
+  <div class="stats">
+    <div class="stat"><b id="stOrig">0</b><span>원래 표현</span></div>
+    <div class="stat"><b id="stChild">0</b><span>확장 표현</span></div>
+    <div class="stat"><b id="stTime">0분</b><span>누적 학습 시간</span></div>
+    <div class="stat"><b id="stWeak">0</b><span>다시 연습할 표현</span></div>
+  </div>
+
+  <div class="scope">
+    <label for="scope">연습 범위</label>
+    <select id="scope">
+      <option value="all">전체 표현</option>
+      <option value="orig">원래 표현만</option>
+      <option value="child">확장 표현만</option>
+      <option value="recent">최근 등록 20개(확장 포함)</option>
+      <option value="weak">다시 연습할 표현 (최근 테스트 80점 미만)</option>
+    </select>
+  </div>
+  <div class="btns">
+    <button class="btn" id="goStudy">공부하기</button>
+    <button class="btn" id="goTest">테스트</button>
+  </div>
+  <div class="btns">
+    <button class="btn ghost" id="goAdd">표현 등록</button>
+    <button class="btn ghost" id="goExpand">확장 표현 만들기</button>
+  </div>
+
+  <h3>표현 목록</h3>
+  <div class="list" id="list"></div>
+</section>
+
+<!-- ========== 표현 등록 ========== -->
+<section class="view" id="add" hidden>
+  <div class="top"><button class="link" data-home>홈으로</button></div>
+  <h2>표현 등록</h2>
+  <p class="sub">텍스트를 붙여넣거나 엑셀·CSV 파일을 올려 주세요. 영어 한 줄, 한국어 한 줄이 번갈아 있거나 한 줄에 <code>영어 | 한국어</code>로 있으면 알아서 짝지어요.</p>
+
+  <label for="addText">텍스트 붙여넣기</label>
+  <textarea id="addText" placeholder="I have some experience in accounting.&#10;나는 회계 분야에서 일한 경험이 좀 있어요."></textarea>
+  <div class="row">
+    <button class="chip" id="parseText">짝 맞춰 보기</button>
+    <label class="chip" for="addFile" style="margin:0;color:var(--ink)">엑셀·CSV 올리기</label>
+    <input type="file" id="addFile" accept=".xlsx,.xls,.csv" hidden>
+    <button class="chip" id="copyOcr">캡처 변환 요청문 복사</button>
+  </div>
+  <p class="sub" style="margin-top:10px;font-size:.85rem">스픽 캡처는 요청문을 복사해 캡처 이미지와 함께 Claude 채팅에 보내고, 받은 결과를 위 칸에 붙여넣으세요.</p>
+
+  <div id="addPreviewBox" hidden>
+    <h3 id="addCount"></h3>
+    <div id="addPreview"></div>
+    <div style="margin-top:16px"><button class="btn" id="addSave">저장하기</button></div>
+  </div>
+  <p class="msg" id="addMsg"></p>
+</section>
+
+<!-- ========== 확장 표현 ========== -->
+<section class="view" id="expand" hidden>
+  <div class="top"><button class="link" data-home>홈으로</button></div>
+  <h2>확장 표현 만들기</h2>
+  <p class="sub">확장할 표현을 고르고 요청문을 복사해 Claude 채팅에 보내세요. 받은 결과를 아래에 붙여넣으면 원래 표현과 묶여서 저장돼요.</p>
+
+  <h3>1. 확장할 표현 고르기</h3>
+  <div class="row" style="margin-top:0">
+    <button class="chip" id="selNoChild">확장 없는 표현만</button>
+    <button class="chip" id="selAll">전체 선택</button>
+    <button class="chip" id="selNone">선택 해제</button>
+  </div>
+  <div id="expandList"></div>
+
+  <label for="expandCount">표현마다 만들 개수</label>
+  <select id="expandCount"><option>3</option><option selected>4</option><option>5</option><option>6</option></select>
+  <div style="margin-top:12px"><button class="btn" id="copyExpand">요청문 복사</button></div>
+
+  <h3>2. Claude 결과 붙여넣기</h3>
+  <textarea id="expandText" placeholder="1 | He has some experience in accounting. | 그는 회계 분야에서 일한 경험이 좀 있어요."></textarea>
+  <div class="row"><button class="chip" id="parseExpand">결과 확인하기</button></div>
+  <div id="expandPreviewBox" hidden>
+    <div id="expandPreview"></div>
+    <div style="margin-top:16px"><button class="btn" id="expandSave">확장 표현 저장</button></div>
+  </div>
+  <p class="msg" id="expandMsg"></p>
+</section>
+
+<!-- ========== 공부·테스트 ========== -->
+<section class="view" id="practice" hidden>
+  <div class="top">
+    <button class="link" id="quit">그만하기</button>
+    <span class="sub" id="prog"></span>
+  </div>
+  <div class="card">
+    <span class="badge" id="kind"></span>
+    <p class="p-ko" id="pKo"></p>
+    <p class="p-en" id="pEn"></p>
+    <div class="row">
+      <button class="chip" id="listen">문장 듣기</button>
+      <button class="chip" id="listenSlow">천천히 듣기</button>
+      <button class="chip" id="reveal">정답 보기</button>
+    </div>
+  </div>
+
+  <div class="mic-area">
+    <button class="mic" id="mic" aria-label="말하기 시작">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
+    </button>
+    <div class="mic-label" id="micLabel"></div>
+    <div class="live" id="live" aria-live="polite"></div>
+  </div>
+
+  <div class="result" id="result" hidden>
+    <p class="verdict" id="verdict"></p>
+    <div class="words" id="words"></div>
+    <p class="heard" id="heard"></p>
+  </div>
+  <ol class="mini" id="cardLog"></ol>
+
+  <div class="nav">
+    <button class="btn ghost" id="prev">이전</button>
+    <button class="btn" id="next">다음</button>
+  </div>
+</section>
+
+<!-- ========== 마무리 ========== -->
+<section class="view" id="done" hidden>
+  <div class="top"><button class="link" data-home>홈으로</button></div>
+  <h2 id="doneTitle"></h2>
+  <p class="sub" id="doneSub"></p>
+  <div id="doneList" style="margin-top:12px"></div>
+  <div class="btns" id="doneBtns"></div>
+</section>
+
+</main>
+
+<dialog id="editDlg">
+  <h2>표현 수정</h2>
+  <label for="edEn">영어</label><input type="text" id="edEn">
+  <label for="edKo">한국어</label><input type="text" id="edKo">
+  <div class="btns">
+    <button class="btn ghost" id="edCancel">취소</button>
+    <button class="btn" id="edSave">저장</button>
+  </div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ================= Firebase 설정값 (주간 알림용) =================
+   Firebase 콘솔에서 받은 값을 따옴표 안에 붙여넣으세요. */
+const FIREBASE = {
+  apiKey: "AIzaSyCbUhwaNLcggG_yaFikcgHwNUArhgkWMCs",
+  authDomain: "speak-more-6c533.firebaseapp.com",
+  projectId: "speak-more-6c533",
+  messagingSenderId: "749864209327",
+  appId: "1:749864209327:web:299c24daeb93c5e9ecfd5a",
+  vapidKey: "BNOKNBXbAw_VbVsbdgjdhwSWIULubVO5IvZqh425GCrqD9mDtXHY0_7rap6Ni4iZVcGoG_-qrFz247TPKYlGbjM"      // Cloud Messaging → 웹 푸시 인증서의 키 쌍
+};
+
+/* ================= 공통 ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const HANGUL = /[가-힣]/;
+let cfg = store.get("cfg") || {url:"", code:""};
+let items = [];
+
+function show(id){
+  document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== id);
+  window.scrollTo(0,0);
+}
+function toast(msg){
+  const t = document.createElement("div");
+  t.className = "toast"; t.textContent = msg; document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2400);
+}
+async function api(action, data = {}){
+  const res = await fetch(cfg.url, {method:"POST", body: JSON.stringify({action, code: cfg.code, ...data})});
+  let j;
+  try{ j = await res.json(); }catch(e){ throw new Error("웹 앱 주소에서 올바른 응답이 오지 않았어요. 주소와 배포 설정을 확인하세요."); }
+  if(!j.ok){ const err = new Error(j.error || "요청이 처리되지 않았어요."); err.reason = j.reason; throw err; }
+  return j;
+}
+async function copyText(text){
+  try{ await navigator.clipboard.writeText(text); toast("요청문을 복사했어요. Claude 채팅에 붙여넣으세요."); }
+  catch(e){
+    const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy"); ta.remove(); toast("요청문을 복사했어요.");
+  }
+}
+const fmtTime = sec => { sec = Math.round(sec); const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60;
+  return h ? `${h}시간 ${m}분` : m ? `${m}분 ${s}초` : `${s}초`; };
+document.querySelectorAll("[data-home]").forEach(b => b.onclick = () => { renderHome(); show("home"); });
+
+/* ================= 연결 ================= */
+async function load(){
+  const j = await api("list");
+  items = j.items;
+  cfg.role = j.role;
+  if(j.role === "parent") await loadReport();
+  else flushLogs();
+}
+function goMain(){ if(cfg.role === "parent"){ renderParent(); show("parent"); } else { renderHome(); show("home"); } }
+let pinBuf = "", pinBusy = false;
+function openPin(msg = ""){ pinBuf = ""; drawDots(); $("#pinMsg").textContent = msg; show("pin"); }
+function drawDots(){ document.querySelectorAll("#dots .dot").forEach((d,i) => d.classList.toggle("on", i < pinBuf.length)); }
+async function tryPin(){
+  pinBusy = true; $("#pinMsg").textContent = "확인하는 중…";
+  cfg.code = pinBuf;
+  try{
+    await load();
+    store.set("cfg", cfg); goMain();
+  }catch(e){
+    cfg.code = "";
+    pinBuf = ""; drawDots();
+    const dots = $("#dots"); dots.classList.remove("shake"); void dots.offsetWidth; dots.classList.add("shake");
+    $("#pinMsg").textContent = e.reason === "pin" ? "PIN이 맞지 않아요. 다시 눌러 주세요." : e.message;
+  }finally{ pinBusy = false; }
+}
+function pressKey(k){
+  if(pinBusy) return;
+  if(k === "del"){ pinBuf = pinBuf.slice(0,-1); drawDots(); return; }
+  if(k === "reset"){
+    if(confirm("지금 연결된 시트와의 연결을 끊고, 다른 연결 링크로 다시 연결할까요?")){
+      cfg = {url:"", code:""}; store.set("cfg", cfg); show("setup");
+    }
+    return;
+  }
+  if(pinBuf.length >= 4) return;
+  pinBuf += k; drawDots(); $("#pinMsg").textContent = "";
+  if(pinBuf.length === 4) tryPin();
+}
+$("#keypad").onclick = e => { const b = e.target.closest(".key"); if(b) pressKey(b.dataset.k || b.textContent.trim()); };
+document.addEventListener("keydown", e => {
+  if($("#pin").hidden) return;
+  if(/^\d$/.test(e.key)) pressKey(e.key);
+  else if(e.key === "Backspace") pressKey("del");
+});
+$("#connect").onclick = () => {
+  const url = $("#cfgUrl").value.trim();
+  if(!/^https:\/\/script\.google\.com\/.+\/exec/.test(url)){ $("#setupMsg").textContent = "웹 앱 주소는 https://script.google.com/ 으로 시작하고 /exec 로 끝나야 해요."; return; }
+  $("#setupMsg").textContent = "";
+  cfg = {url, code:""}; store.set("cfg", cfg); openPin();
+};
+function lock(){ cfg.code = ""; cfg.role = ""; store.set("cfg", cfg); openPin(); }
+$("#toSetup").onclick = lock;
+$("#lockParent").onclick = lock;
+
+/* ================= 홈 ================= */
+const originals = () => items.filter(i => !i.parentId);
+const childrenOf = id => items.filter(i => i.parentId === id);
+const isWeak = i => i.testCount > 0 && i.testRecent !== null && i.testRecent < 80;
+function ordered(list){
+  const set = new Set(list.map(i => i.id)), out = [];
+  originals().forEach(o => {
+    if(set.has(o.id)) out.push(o);
+    childrenOf(o.id).forEach(c => { if(set.has(c.id)) out.push(c); });
+  });
+  return out;
+}
+function metaText(i){
+  const parts = [`공부 ${i.studyCount}회`];
+  if(i.testCount) parts.push(`테스트 최근 <span class="${isWeak(i) ? "low" : ""}">${i.testRecent}점</span>`);
+  else parts.push("테스트 전");
+  return parts.join(" · ");
+}
+function renderHome(){
+  const o = originals();
+  $("#stOrig").textContent = o.length;
+  $("#stChild").textContent = items.length - o.length;
+  $("#stTime").textContent = fmtTime(items.reduce((a,i) => a + (i.seconds || 0), 0));
+  $("#stWeak").textContent = items.filter(isWeak).length;
+  if(!o.length){
+    $("#list").innerHTML = `<div class="empty">아직 표현이 없어요.<br>‘표현 등록’에서 스픽 문장을 붙여넣어 시작해 보세요.</div>`;
+    return;
+  }
+  $("#list").innerHTML = [...o].reverse().map(x => {
+    const kids = childrenOf(x.id);
+    return `<div class="item">
+      <p class="en">${esc(x.en)}</p><p class="ko">${esc(x.ko)}</p>
+      <p class="meta">${metaText(x)}</p>
+      <div class="acts">
+        <button data-act="study" data-id="${x.id}">이 표현 공부</button>
+        <button data-act="edit" data-id="${x.id}">수정</button>
+        <button class="del" data-act="del" data-id="${x.id}">삭제</button>
+      </div>
+      ${kids.length ? `<details><summary>확장 표현 ${kids.length}개</summary>${kids.map(c => `
+        <div class="child"><p class="en">${esc(c.en)}</p><p class="ko">${esc(c.ko)}</p>
+        <p class="meta">${metaText(c)}</p>
+        <div class="acts"><button data-act="edit" data-id="${c.id}">수정</button><button class="del" data-act="del" data-id="${c.id}">삭제</button></div></div>`).join("")}
+      </details>` : ""}
+    </div>`;
+  }).join("");
+}
+$("#list").onclick = async e => {
+  const b = e.target.closest("button[data-act]"); if(!b) return;
+  const it = items.find(i => i.id === b.dataset.id); if(!it) return;
+  if(b.dataset.act === "study") startPractice("study", [it, ...childrenOf(it.id)]);
+  if(b.dataset.act === "edit") openEdit(it);
+  if(b.dataset.act === "del"){
+    const kids = childrenOf(it.id).length;
+    if(!confirm(`이 표현${kids ? `과 확장 표현 ${kids}개` : ""}를 삭제할까요?\n${it.en}`)) return;
+    try{
+      await api("delete", {id: it.id});
+      items = items.filter(i => i.id !== it.id && i.parentId !== it.id);
+      renderHome(); toast("삭제했어요.");
+    }catch(err){ toast(err.message); }
+  }
+};
+function scopeList(){
+  const v = $("#scope").value;
+  if(v === "orig") return originals();
+  if(v === "child") return items.filter(i => i.parentId);
+  if(v === "weak") return ordered(items.filter(isWeak));
+  if(v === "recent"){
+    const recentO = originals().slice(-20).map(o => o.id);
+    return ordered(items.filter(i => recentO.includes(i.id) || recentO.includes(i.parentId)));
+  }
+  return ordered(items);
+}
+$("#goStudy").onclick = () => startPractice("study", scopeList());
+$("#goTest").onclick = () => startPractice("test", scopeList());
+$("#goAdd").onclick = () => { resetAdd(); show("add"); };
+$("#goExpand").onclick = () => { renderExpandList(); show("expand"); };
+
+/* 수정 */
+let editing = null;
+function openEdit(it){ editing = it; $("#edEn").value = it.en; $("#edKo").value = it.ko; $("#editDlg").showModal(); }
+$("#edCancel").onclick = () => $("#editDlg").close();
+$("#edSave").onclick = async () => {
+  const en = $("#edEn").value.trim(), ko = $("#edKo").value.trim();
+  if(!en || !ko){ toast("영어와 한국어를 모두 입력하세요."); return; }
+  try{ await api("update", {id: editing.id, en, ko}); editing.en = en; editing.ko = ko; $("#editDlg").close(); renderHome(); toast("수정했어요."); }
+  catch(e){ toast(e.message); }
+};
+
+/* ================= 표현 등록 ================= */
+let addDraft = [];
+function resetAdd(){ $("#addText").value = ""; addDraft = []; $("#addPreviewBox").hidden = true; $("#addMsg").textContent = ""; }
+function parseText(txt){
+  const out = [], seq = [];
+  txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(line => {
+    const parts = line.split(/\t|\|/).map(s => s.trim()).filter(Boolean);
+    if(parts.length >= 2){
+      const ko = parts.find(p => HANGUL.test(p)), en = parts.find(p => !HANGUL.test(p));
+      if(ko && en){ seq.push({k:"pair", en: en.replace(/^\d+[.)]\s*/, ""), ko}); return; }
+    }
+    seq.push({k: HANGUL.test(line) ? "ko" : "en", t: line.replace(/^\d+[.)]\s*/, "")});
+  });
+  for(let i = 0; i < seq.length; ){
+    const a = seq[i], b = seq[i+1];
+    if(a.k === "pair"){ out.push({en:a.en, ko:a.ko}); i += 1; }
+    else if(b && b.k !== "pair" && a.k !== b.k){ out.push(a.k === "en" ? {en:a.t, ko:b.t} : {en:b.t, ko:a.t}); i += 2; }
+    else { out.push(a.k === "en" ? {en:a.t, ko:""} : {en:"", ko:a.t}); i += 1; }
+  }
+  return out;
+}
+function renderAddPreview(){
+  $("#addPreviewBox").hidden = false;
+  $("#addCount").textContent = `확인할 표현 ${addDraft.length}개 — 빈칸은 채우거나 지워 주세요`;
+  $("#addPreview").innerHTML = addDraft.map((d,i) => `
+    <div class="prev-row"><div class="pair">
+      <input type="text" data-i="${i}" data-f="en" value="${esc(d.en)}" placeholder="영어 문장">
+      <input type="text" data-i="${i}" data-f="ko" value="${esc(d.ko)}" placeholder="한국어 해석">
+    </div><button class="x" data-rm="${i}" aria-label="빼기">×</button></div>`).join("");
+}
+$("#addPreview").oninput = e => { const t = e.target; if(t.dataset.f) addDraft[t.dataset.i][t.dataset.f] = t.value; };
+$("#addPreview").onclick = e => { const b = e.target.closest("[data-rm]"); if(b){ addDraft.splice(+b.dataset.rm, 1); renderAddPreview(); } };
+$("#parseText").onclick = () => {
+  addDraft = parseText($("#addText").value);
+  if(!addDraft.length){ $("#addMsg").textContent = "붙여넣은 문장이 없어요."; return; }
+  $("#addMsg").textContent = ""; renderAddPreview();
+};
+$("#addFile").onchange = async e => {
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    const wb = XLSX.read(await f.arrayBuffer());
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:""});
+    addDraft = rows.map(r => {
+      const cells = r.map(c => String(c).trim()).filter(Boolean);
+      return {en: cells.find(c => !HANGUL.test(c) && /[a-zA-Z]/.test(c)) || "", ko: cells.find(c => HANGUL.test(c)) || ""};
+    }).filter(d => (d.en || d.ko) && !/^(영어|한국어|english|korean)$/i.test(d.en || d.ko));
+    $("#addMsg").textContent = addDraft.length ? "" : "파일에서 문장을 찾지 못했어요. A열에 영어, B열에 한국어를 넣어 주세요.";
+    if(addDraft.length) renderAddPreview();
+  }catch(err){ $("#addMsg").textContent = "파일을 읽지 못했어요: " + err.message; }
+  e.target.value = "";
+};
+$("#copyOcr").onclick = () => copyText(
+`첨부한 스픽 앱 '문장 모아보기' 캡처에 있는 문장을 모두 뽑아 줘.
+- 한 줄에 하나씩 "영어 문장 | 한국어 해석" 형식으로만 써 줘.
+- 캡처에 있는 문장을 그대로 옮기고, 고치거나 새로 만들지 마.
+- 번호, 제목, 다른 설명은 쓰지 마.`);
+$("#addSave").onclick = async () => {
+  const valid = addDraft.filter(d => d.en.trim() && d.ko.trim());
+  const missing = addDraft.length - valid.length;
+  if(!valid.length){ $("#addMsg").textContent = "영어와 한국어가 모두 있는 표현이 없어요."; return; }
+  if(missing && !confirm(`빈칸이 있는 ${missing}개는 빼고 ${valid.length}개를 저장할까요?`)) return;
+  $("#addSave").disabled = true;
+  try{
+    const j = await api("add", {items: valid.map(d => ({en:d.en, ko:d.ko, source:"스픽"}))});
+    items.push(...j.items); toast(`${j.items.length}개를 저장했어요.`); renderHome(); show("home");
+  }catch(e){ $("#addMsg").textContent = e.message; }
+  finally{ $("#addSave").disabled = false; }
+};
+
+/* ================= 확장 표현 ================= */
+let expandSel = store.get("expandSel") || [];
+let expandDraft = [];
+function renderExpandList(){
+  const o = originals();
+  if(!expandSel.length) expandSel = o.filter(x => !childrenOf(x.id).length).map(x => x.id);
+  $("#expandList").innerHTML = o.length ? o.map(x => `
+    <label class="check"><input type="checkbox" value="${x.id}" ${expandSel.includes(x.id) ? "checked" : ""}>
+    <span><span class="en">${esc(x.en)}</span><br><span class="sub">${esc(x.ko)} · 확장 ${childrenOf(x.id).length}개</span></span></label>`).join("")
+    : `<p class="empty">먼저 표현을 등록해 주세요.</p>`;
+  $("#expandPreviewBox").hidden = true; $("#expandMsg").textContent = "";
+}
+const readSel = () => [...document.querySelectorAll("#expandList input:checked")].map(c => c.value);
+const setSel = ids => document.querySelectorAll("#expandList input").forEach(c => c.checked = ids.includes(c.value));
+$("#selAll").onclick = () => setSel(originals().map(x => x.id));
+$("#selNone").onclick = () => setSel([]);
+$("#selNoChild").onclick = () => setSel(originals().filter(x => !childrenOf(x.id).length).map(x => x.id));
+$("#copyExpand").onclick = () => {
+  expandSel = readSel(); store.set("expandSel", expandSel);
+  if(!expandSel.length){ toast("확장할 표현을 하나 이상 고르세요."); return; }
+  const n = $("#expandCount").value;
+  const lines = expandSel.map((id,i) => { const x = items.find(t => t.id === id); return `${i+1}. ${x.en} (${x.ko})`; }).join("\n");
+  copyText(
+`아래 영어 표현마다 같은 문장 패턴을 유지하면서 주어, 목적어, 장소, 시간 등을 바꾼 확장 표현을 ${n}개씩 만들어 줘.
+- 원래 문장의 뼈대(패턴)는 그대로 두고, 바뀐 주어에 맞게 동사 형태를 정확히 고쳐 줘.
+- 주어는 I, you, he, she, we, they 등을 골고루 써 줘.
+- 실제 회화에서 자연스럽게 쓰는 문장으로 만들어 줘.
+- 출력은 한 줄에 하나씩 "번호 | 영어 문장 | 한국어 해석" 형식으로만 쓰고, 다른 설명은 쓰지 마.
+- 번호는 아래 원래 표현의 번호를 그대로 써 줘.
+
+${lines}`);
+};
+$("#parseExpand").onclick = () => {
+  expandDraft = [];
+  $("#expandText").value.split(/\r?\n/).forEach(line => {
+    const p = line.split("|").map(s => s.trim());
+    if(p.length < 3) return;
+    const num = parseInt(p[0].replace(/[^\d]/g, ""), 10);
+    const parentId = expandSel[num - 1];
+    if(!parentId || !p[1] || !p[2]) return;
+    const en = HANGUL.test(p[1]) ? p[2] : p[1], ko = HANGUL.test(p[1]) ? p[1] : p[2];
+    expandDraft.push({parentId, en, ko});
+  });
+  if(!expandDraft.length){ $("#expandMsg").textContent = "읽을 수 있는 줄이 없어요. ‘번호 | 영어 | 한국어’ 형식인지 확인하세요."; return; }
+  $("#expandMsg").textContent = ""; renderExpandPreview();
+};
+function renderExpandPreview(){
+  $("#expandPreviewBox").hidden = false;
+  const groups = {};
+  expandDraft.forEach((d,i) => (groups[d.parentId] = groups[d.parentId] || []).push(i));
+  $("#expandPreview").innerHTML = Object.entries(groups).map(([pid, idxs]) => {
+    const p = items.find(t => t.id === pid);
+    return `<p class="group-title">${esc(p ? p.en : "")}</p>` + idxs.map(i => `
+      <div class="prev-row"><div class="pair">
+        <input type="text" data-i="${i}" data-f="en" value="${esc(expandDraft[i].en)}">
+        <input type="text" data-i="${i}" data-f="ko" value="${esc(expandDraft[i].ko)}">
+      </div><button class="x" data-rm="${i}" aria-label="빼기">×</button></div>`).join("");
+  }).join("");
+}
+$("#expandPreview").oninput = e => { const t = e.target; if(t.dataset.f) expandDraft[t.dataset.i][t.dataset.f] = t.value; };
+$("#expandPreview").onclick = e => { const b = e.target.closest("[data-rm]"); if(b){ expandDraft.splice(+b.dataset.rm, 1); renderExpandPreview(); } };
+$("#expandSave").onclick = async () => {
+  const valid = expandDraft.filter(d => d.en.trim() && d.ko.trim());
+  if(!valid.length) return;
+  $("#expandSave").disabled = true;
+  try{
+    const j = await api("add", {items: valid.map(d => ({...d, source:"확장"}))});
+    items.push(...j.items); expandSel = []; store.set("expandSel", []);
+    $("#expandText").value = ""; toast(`확장 표현 ${j.items.length}개를 저장했어요.`); renderHome(); show("home");
+  }catch(e){ $("#expandMsg").textContent = e.message; }
+  finally{ $("#expandSave").disabled = false; }
+};
+
+/* ================= 음성 ================= */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const hasTTS = "speechSynthesis" in window;
+function speak(text, rate){
+  if(!hasTTS) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US"; u.rate = rate;
+  const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.replace("_","-").startsWith("en-US"));
+  if(v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+if(hasTTS) speechSynthesis.getVoices();
+
+const CONTR = {"i'm":"i am","i've":"i have","i'll":"i will","i'd":"i would","you're":"you are","you've":"you have","you'll":"you will",
+  "he's":"he is","she's":"she is","it's":"it is","we're":"we are","we've":"we have","we'll":"we will","they're":"they are","they've":"they have","they'll":"they will",
+  "he'll":"he will","she'll":"she will","don't":"do not","doesn't":"does not","didn't":"did not","can't":"cannot","won't":"will not","isn't":"is not",
+  "aren't":"are not","wasn't":"was not","weren't":"were not","haven't":"have not","hasn't":"has not","that's":"that is","there's":"there is","let's":"let us"};
+function norm(s){
+  return s.toLowerCase().replace(/[’‘]/g,"'").split(/\s+/)
+    .map(w => w.replace(/^[^a-z0-9']+|[^a-z0-9']+$/g, ""))
+    .filter(Boolean).flatMap(w => (CONTR[w] || w).split(" "));
+}
+function align(t, s){
+  const n = t.length, m = s.length, dp = Array.from({length:n+1}, () => Array(m+1).fill(0));
+  for(let i = n-1; i >= 0; i--) for(let j = m-1; j >= 0; j--)
+    dp[i][j] = t[i] === s[j] ? dp[i+1][j+1] + 1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  const ops = []; let i = 0, j = 0;
+  while(i < n && j < m){
+    if(t[i] === s[j]){ ops.push({k:"ok", w:t[i]}); i++; j++; }
+    else if(dp[i+1][j] >= dp[i][j+1]) ops.push({k:"miss", w:t[i++]});
+    else ops.push({k:"extra", w:s[j++]});
+  }
+  while(i < n) ops.push({k:"miss", w:t[i++]});
+  while(j < m) ops.push({k:"extra", w:s[j++]});
+  const hit = ops.filter(o => o.k === "ok").length, ext = ops.filter(o => o.k === "extra").length;
+  return {ops, score: Math.round(100 * hit / Math.max(n, hit + ext, 1))};
+}
+const disp = w => w === "i" ? "I" : w;
+
+/* ================= 연습 기록 전송 ================= */
+let pending = store.get("pending") || [];
+let flushing = false;
+async function flushLogs(){
+  if(flushing || !pending.length || !cfg.url) return;
+  flushing = true;
+  const batch = pending.slice();
+  try{ await api("log", {entries: batch}); pending = pending.slice(batch.length); store.set("pending", pending); }
+  catch(e){ /* 다음에 다시 보냄 */ }
+  finally{ flushing = false; }
+}
+function addLog(entry){ pending.push(entry); store.set("pending", pending); flushLogs(); }
+setInterval(flushLogs, 15000);
+
+/* ================= 공부·테스트 ================= */
+let P = null, rec = null, listening = false;
+function shuffle(a){ a = a.slice(); for(let i = a.length-1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+function startPractice(mode, list){
+  if(!list.length){ toast("이 범위에는 연습할 표현이 없어요."); return; }
+  if(!SR) toast("이 브라우저는 음성 인식을 지원하지 않아요. 크롬이나 사파리로 열어 주세요.");
+  P = {mode, list: mode === "test" ? shuffle(list) : list, idx: 0, revealed: {}, best: {}, cardLog: {}, tries: 0,
+       start: Date.now(), cardStart: Date.now(), lastResult: null};
+  renderCard(); show("practice");
+}
+const cur = () => P.list[P.idx];
+const hideAns = () => P.mode === "test" && !P.revealed[cur().id];
+function renderCard(){
+  const it = cur();
+  stopListening();
+  $("#prog").textContent = `${P.mode === "test" ? "테스트" : "공부하기"} · ${P.idx+1} / ${P.list.length}`;
+  $("#kind").textContent = it.parentId ? "확장 표현" : "원래 표현";
+  $("#pKo").textContent = it.ko;
+  renderEn();
+  $("#reveal").hidden = P.mode !== "test";
+  $("#result").hidden = true; $("#live").textContent = "";
+  $("#micLabel").textContent = SR ? "버튼을 누르고 영어로 말해 보세요" : "이 브라우저에서는 말하기를 쓸 수 없어요";
+  $("#mic").disabled = !SR;
+  $("#listen").disabled = $("#listenSlow").disabled = !hasTTS || hideAns();
+  $("#prev").disabled = P.idx === 0;
+  $("#next").textContent = P.idx === P.list.length - 1 ? "마치기" : "다음";
+  P.lastResult = null; P.cardStart = Date.now();
+  renderCardLog();
+}
+function renderEn(){
+  const el = $("#pEn");
+  if(hideAns()){ el.textContent = "한국어를 보고 영어로 말해 보세요"; el.classList.add("hidden"); }
+  else { el.textContent = cur().en; el.classList.remove("hidden"); }
+  $("#reveal").disabled = !hideAns();
+  $("#listen").disabled = $("#listenSlow").disabled = !hasTTS || hideAns();
+}
+function renderCardLog(){
+  const log = P.cardLog[cur().id] || [];
+  $("#cardLog").innerHTML = log.map(l => `<li>${l.score}점${l.mode === "test" ? " (테스트)" : ""}${hideAns() ? "" : ` · ${esc(l.said)}`}</li>`).join("");
+}
+function renderResult(best){
+  const v = best.score === 100 ? "완벽해요! 한 번 더 자연스럽게 말해 보세요."
+          : best.score >= 70 ? "거의 맞았어요. 표시된 부분을 다시 말해 보세요."
+          : P.mode === "test" && hideAns() ? "다시 말해 보거나, 정답 보기를 눌러 확인하세요."
+          : "다시 해 보세요. 문장 듣기로 먼저 따라 해도 좋아요.";
+  $("#verdict").textContent = `${best.score}점 · ${v}`;
+  $("#words").innerHTML = best.ops.map(o => (o.k === "miss" && hideAns())
+    ? `<span class="w blank">${"＿".repeat(Math.max(2, Math.ceil(o.w.length/2)))}</span>`
+    : `<span class="w ${o.k}">${esc(disp(o.w))}</span>`).join("");
+  $("#heard").textContent = `내가 말한 문장: “${best.text}”`;
+  $("#result").hidden = false;
+}
+function revealCard(){
+  P.revealed[cur().id] = true; renderEn(); renderCardLog();
+  if(P.lastResult) renderResult(P.lastResult);
+}
+$("#reveal").onclick = revealCard;
+$("#listen").onclick = () => speak(cur().en, 0.95);
+$("#listenSlow").onclick = () => speak(cur().en, 0.7);
+$("#prev").onclick = () => { if(P.idx > 0){ P.idx--; renderCard(); } };
+$("#next").onclick = () => { if(P.idx < P.list.length - 1){ P.idx++; renderCard(); } else finish(); };
+$("#quit").onclick = () => finish();
+
+function judge(alts){
+  const it = cur();
+  const target = norm(it.en);
+  let best = null;
+  alts.forEach(a => { const r = align(target, norm(a)); if(!best || r.score > best.score) best = {...r, text: a}; });
+  const now = Date.now();
+  const seconds = Math.min(180, Math.round((now - P.cardStart) / 1000));
+  P.cardStart = now;
+  const logMode = hideAns() ? "test" : "study";
+  P.tries++;
+  (P.cardLog[it.id] = P.cardLog[it.id] || []).unshift({score: best.score, said: best.text, mode: logMode});
+  if(logMode === "test") P.best[it.id] = Math.max(P.best[it.id] ?? 0, best.score);
+  // 화면용 요약도 바로 갱신
+  if(logMode === "test"){ it.testCount++; it.testRecent = best.score; it.testBest = Math.max(it.testBest ?? 0, best.score); }
+  else it.studyCount++;
+  it.seconds = (it.seconds || 0) + seconds;
+  addLog({at: new Date(now).toISOString(), id: it.id, en: it.en, mode: logMode, score: best.score, said: best.text, seconds});
+  P.lastResult = best;
+  if(P.mode === "test" && best.score === 100) P.revealed[it.id] = true;
+  renderEn(); renderResult(best); renderCardLog();
+}
+
+function stopListening(){ if(rec && listening){ try{ rec.abort(); }catch(e){} } listening = false; $("#mic").classList.remove("listening"); }
+$("#mic").onclick = () => {
+  if(!SR) return;
+  if(listening){ rec.stop(); return; }
+  if(hasTTS) speechSynthesis.cancel();
+  rec = new SR();
+  rec.lang = "en-US"; rec.interimResults = true; rec.maxAlternatives = 3; rec.continuous = false;
+  let finalAlts = null, gotError = false;
+  rec.onstart = () => {
+    listening = true; $("#mic").classList.add("listening"); $("#mic").setAttribute("aria-label","말하기 멈추기");
+    $("#micLabel").textContent = "듣고 있어요… 다 말하면 잠시 멈추세요"; $("#live").textContent = "";
+  };
+  rec.onresult = e => {
+    const r = e.results[e.results.length - 1];
+    $("#live").textContent = hideAns() ? "…" : r[0].transcript;
+    if(r.isFinal) finalAlts = Array.from(r).map(x => x.transcript);
+  };
+  rec.onerror = e => {
+    gotError = true;
+    $("#micLabel").textContent = ({
+      "not-allowed":"마이크 사용이 막혀 있어요. 주소창에서 마이크 권한을 허용하세요.",
+      "service-not-allowed":"이 화면에서는 음성 인식을 쓸 수 없어요.",
+      "no-speech":"말소리가 들리지 않았어요. 다시 눌러서 말해 보세요.",
+      "audio-capture":"마이크를 찾지 못했어요.",
+      "network":"음성 인식 서버에 연결하지 못했어요. 인터넷 연결을 확인하세요.",
+      "aborted":"버튼을 누르고 영어로 말해 보세요"
+    })[e.error] || `음성 인식 오류: ${e.error}`;
+  };
+  rec.onend = () => {
+    listening = false; $("#mic").classList.remove("listening"); $("#mic").setAttribute("aria-label","말하기 시작");
+    if(finalAlts && finalAlts[0].trim()){ judge(finalAlts); $("#micLabel").textContent = "다시 말하려면 버튼을 누르세요"; $("#live").textContent = ""; }
+    else if(!gotError) $("#micLabel").textContent = "버튼을 누르고 영어로 말해 보세요";
+  };
+  try{ rec.start(); }catch(err){ $("#micLabel").textContent = "음성 인식을 시작하지 못했어요. 잠시 후 다시 눌러 보세요."; }
+};
+
+/* ================= 마무리 ================= */
+function finish(){
+  stopListening(); if(hasTTS) speechSynthesis.cancel();
+  flushLogs();
+  const mins = fmtTime((Date.now() - P.start) / 1000);
+  if(P.mode === "study"){
+    const seen = new Set(Object.keys(P.cardLog)).size;
+    $("#doneTitle").textContent = "공부를 마쳤어요";
+    $("#doneSub").textContent = `${seen}개 표현을 ${P.tries}번 말했어요 · ${mins}`;
+    $("#doneList").innerHTML = "";
+    $("#doneBtns").innerHTML = `<button class="btn ghost" data-go="home">홈으로</button><button class="btn" data-go="test">이 범위로 테스트</button>`;
+  } else {
+    const tried = P.list.filter(i => P.best[i.id] !== undefined);
+    const low = P.list.filter(i => (P.best[i.id] ?? 0) < 80);
+    $("#doneTitle").textContent = "테스트 결과";
+    $("#doneSub").textContent = `${P.list.length}개 중 ${P.list.length - low.length}개 통과(80점 이상) · ${mins}`;
+    $("#doneList").innerHTML = P.list.map(i => {
+      const s = P.best[i.id];
+      return `<div class="res-row"><div><p>${esc(i.ko)}</p><p class="sub">${esc(i.en)}</p></div>
+        <span class="sc ${s === undefined || s < 80 ? "low" : ""}">${s === undefined ? "건너뜀" : s + "점"}</span></div>`;
+    }).join("");
+    P.retry = low;
+    $("#doneBtns").innerHTML = low.length
+      ? `<button class="btn ghost" data-go="home">홈으로</button><button class="btn" data-go="retry">80점 미만 ${low.length}개 공부</button>`
+      : `<button class="btn" data-go="home" style="grid-column:1/-1">홈으로</button>`;
+    void tried;
+  }
+  show("done");
+}
+$("#doneBtns").onclick = e => {
+  const b = e.target.closest("[data-go]"); if(!b) return;
+  if(b.dataset.go === "home"){ renderHome(); show("home"); }
+  if(b.dataset.go === "test") startPractice("test", P.list);
+  if(b.dataset.go === "retry") startPractice("study", ordered(P.retry));
+};
+
+/* ================= 보호자 보기 ================= */
+let report = null, schedule = null;
+async function loadReport(){
+  const j = await api("report");
+  report = j.report; schedule = j.schedule;
+}
+function renderParent(){
+  if(!report) return;
+  const days = report.days, week = days.slice(-7), two = days.slice(-14);
+  const sum = (arr, f) => arr.reduce((a,d) => a + f(d), 0);
+  const tCount = sum(week, d => d.test), tSum = sum(week, d => d.testSum);
+  const weak = items.filter(isWeak);
+  $("#pStats").innerHTML = [
+    [`${week.filter(d => d.study + d.test > 0).length}일`, "공부한 날"],
+    [fmtTime(sum(week, d => d.seconds)), "학습 시간"],
+    [`${sum(week, d => d.study + d.test)}회`, "말하기"],
+    [tCount ? `${Math.round(tSum / tCount)}점` : "–", "테스트 평균"]
+  ].map(([b, t]) => `<div class="stat"><b>${b}</b><span>${t}</span></div>`).join("");
+
+  const max = Math.max(60, ...two.map(d => d.seconds));
+  $("#pChart").innerHTML = two.map((d, i) => {
+    const mins = Math.round(d.seconds / 60), h = Math.round(d.seconds / max * 100);
+    return `<div class="bar-col" title="${d.label}(${d.wd}) ${mins}분 · 말하기 ${d.study + d.test}회">
+      <div class="bar ${d.seconds ? "" : "zero"}" style="height:${d.seconds ? Math.max(h, 4) : 2}%"></div>
+      <small class="${i === two.length - 1 ? "today" : ""}">${(two.length - 1 - i) % 2 === 0 ? d.label : "&nbsp;"}</small></div>`;
+  }).join("");
+  $("#pChart").setAttribute("aria-label", "최근 14일 학습 시간: " + two.map(d => `${d.label} ${Math.round(d.seconds/60)}분`).join(", "));
+  const best = two.reduce((a, d) => d.seconds > a.seconds ? d : a, two[0]);
+  $("#pChartNote").textContent = best.seconds ? `가장 많이 공부한 날은 ${best.label}(${best.wd}) ${fmtTime(best.seconds)}이에요.` : "최근 14일 동안 기록이 없어요.";
+
+  $("#pTests").innerHTML = report.tests.length ? report.tests.map(t => {
+    const d = new Date(t.at);
+    return `<div class="res-row"><div><p>${esc(t.en)}</p><p class="sub">${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}</p></div>
+      <span class="sc ${t.score < 80 ? "low" : ""}">${t.score}점</span></div>`;
+  }).join("") : `<p class="sub">최근 4주 동안 본 테스트가 없어요.</p>`;
+
+  $("#pWeak").innerHTML = weak.length ? weak.map(i => `<div class="res-row"><div><p>${esc(i.ko)}</p><p class="sub">${esc(i.en)}</p></div>
+    <span class="sc low">${i.testRecent}점</span></div>`).join("") : `<p class="sub">다시 연습할 표현이 없어요. 최근 테스트에서 모두 80점 이상이에요.</p>`;
+
+  renderNotifyStatus();
+}
+$("#pRefresh").onclick = async () => {
+  $("#pRefresh").disabled = true;
+  try{ await load(); renderParent(); toast("최신 기록으로 바꿨어요."); }
+  catch(e){ toast(e.message); }
+  finally{ $("#pRefresh").disabled = false; }
+};
+
+/* ================= 주간 알림 ================= */
+const FB_SDK = "https://www.gstatic.com/firebasejs/10.12.2/";
+const fbReady = () => !!(FIREBASE.apiKey && FIREBASE.projectId && FIREBASE.messagingSenderId && FIREBASE.appId && FIREBASE.vapidKey);
+function renderNotifyStatus(){
+  const when = schedule ? `매주 ${schedule.day}요일 ${schedule.hour}시~${schedule.hour + 1}시 사이` : "";
+  let msg;
+  if(!fbReady()) msg = "앱에 Firebase 설정값이 아직 들어 있지 않아요.";
+  else if(!("Notification" in window) || !("serviceWorker" in navigator)) msg = "이 브라우저는 알림을 지원하지 않아요. 크롬으로 열어 주세요.";
+  else if(Notification.permission === "denied") msg = "알림이 차단되어 있어요. 주소창 왼쪽 아이콘 → 권한 → 알림을 허용한 뒤 다시 눌러 주세요.";
+  else if(Notification.permission === "granted" && store.get("notifyToken")) msg = `이 휴대폰으로 주간 요약 알림을 받고 있어요. (${when})`;
+  else msg = `‘알림 받기’를 누르면 ${when}에 주간 요약이 이 휴대폰 알림으로 와요.`;
+  $("#notifyStatus").textContent = msg;
+  $("#notifyBtn").textContent = store.get("notifyToken") ? "알림 다시 연결" : "알림 받기";
+  $("#notifyBtn").disabled = !fbReady();
+  $("#notifyTest").disabled = !fbReady() || !store.get("notifyToken");
+}
+function loadScript(src){
+  return new Promise((res, rej) => {
+    if(document.querySelector(`script[src="${src}"]`)) return res();
+    const sc = document.createElement("script"); sc.src = src;
+    sc.onload = res; sc.onerror = () => rej(new Error("알림 기능을 불러오지 못했어요. 인터넷 연결을 확인하세요."));
+    document.head.appendChild(sc);
+  });
+}
+function waitActive(reg){
+  if(reg.active) return Promise.resolve();
+  const sw = reg.installing || reg.waiting;
+  return new Promise(r => sw.addEventListener("statechange", () => { if(sw.state === "activated") r(); }));
+}
+async function enableNotify(){
+  if(!("Notification" in window) || !("serviceWorker" in navigator)) throw new Error("이 브라우저는 알림을 지원하지 않아요. 크롬으로 열어 주세요.");
+  const perm = await Notification.requestPermission();
+  if(perm !== "granted") throw new Error("알림이 허용되지 않았어요. 주소창 왼쪽 아이콘 → 권한에서 알림을 허용해 주세요.");
+  await loadScript(FB_SDK + "firebase-app-compat.js");
+  await loadScript(FB_SDK + "firebase-messaging-compat.js");
+  const {vapidKey, ...conf} = FIREBASE;
+  if(!firebase.apps.length) firebase.initializeApp(conf);
+  const qs = new URLSearchParams({apiKey: conf.apiKey, projectId: conf.projectId, messagingSenderId: conf.messagingSenderId, appId: conf.appId});
+  const reg = await navigator.serviceWorker.register("firebase-messaging-sw.js?" + qs.toString());
+  await waitActive(reg);
+  const token = await firebase.messaging().getToken({vapidKey, serviceWorkerRegistration: reg});
+  if(!token) throw new Error("알림 연결 정보를 받지 못했어요. 잠시 후 다시 눌러 주세요.");
+  await api("saveToken", {token, device: navigator.userAgent.slice(0, 120)});
+  store.set("notifyToken", token);
+}
+$("#notifyBtn").onclick = async () => {
+  $("#notifyBtn").disabled = true; $("#notifyStatus").textContent = "알림을 연결하는 중…";
+  try{ await enableNotify(); toast("알림을 연결했어요. 테스트 알림으로 확인해 보세요."); }
+  catch(e){ toast(e.message); }
+  finally{ renderNotifyStatus(); }
+};
+$("#notifyTest").onclick = async () => {
+  $("#notifyTest").disabled = true;
+  try{ const j = await api("testNotify"); toast(`${j.sent}대의 휴대폰으로 테스트 알림을 보냈어요.`); }
+  catch(e){ toast(e.message); }
+  finally{ renderNotifyStatus(); }
+};
+
+/* ================= 시작 ================= */
+(async () => {
+  const q = new URLSearchParams(location.search);
+  const link = q.get("connect");
+  if(link){
+    if(/^https:\/\/script\.google\.com\//.test(link)){ cfg = {url: link, code: ""}; store.set("cfg", cfg); }
+    history.replaceState(null, "", location.pathname);
+  }
+  if(!cfg.url){ show("setup"); return; }
+  if(!cfg.code){ openPin(link ? "연결 링크를 확인했어요. PIN을 눌러 주세요." : ""); return; }
+  try{ await load(); goMain(); }
+  catch(e){
+    if(e.reason === "pin"){ cfg.code = ""; store.set("cfg", cfg); openPin("PIN이 바뀌었어요. 새 PIN을 눌러 주세요."); }
+    else { goMain(); toast(e.message); }
+  }
+})();
+</script>
+</body>
+</html>
