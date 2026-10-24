@@ -1194,6 +1194,7 @@ function renderParent(){
     <span class="sc low">${i.testRecent}점</span></div>`).join("") : `<p class="sub">다시 연습할 표현이 없어요. 최근 테스트에서 모두 80점 이상이에요.</p>`;
 
   renderNotifyStatus();
+  if(store.get("notifyToken")) setupForeground().catch(() => {});
 }
 $("#pRefresh").onclick = async () => {
   $("#pRefresh").disabled = true;
@@ -1231,6 +1232,23 @@ function waitActive(reg){
   const sw = reg.installing || reg.waiting;
   return new Promise(r => sw.addEventListener("statechange", () => { if(sw.state === "activated") r(); }));
 }
+/* 앱이 화면에 켜져 있을 때 온 알림도 상단에 띄우기
+   (Firebase는 앱이 열려 있으면 알림을 자동으로 띄우지 않음) */
+let fgReady = false;
+async function setupForeground(){
+  if(fgReady || !fbReady() || !("Notification" in window) || Notification.permission !== "granted") return;
+  await loadScript(FB_SDK + "firebase-app-compat.js");
+  await loadScript(FB_SDK + "firebase-messaging-compat.js");
+  const {vapidKey, ...conf} = FIREBASE;
+  if(!firebase.apps.length) firebase.initializeApp(conf);
+  firebase.messaging().onMessage(async payload => {
+    const n = payload.notification || {};
+    const reg = await navigator.serviceWorker.getRegistration();
+    if(reg) reg.showNotification(n.title || "Speak More!", {body: n.body || "", icon: "icon-192.png"});
+    else toast(`${n.title || ""} ${n.body || ""}`);
+  });
+  fgReady = true;
+}
 async function enableNotify(){
   if(!("Notification" in window) || !("serviceWorker" in navigator)) throw new Error("이 브라우저는 알림을 지원하지 않아요. 크롬으로 열어 주세요.");
   const perm = await Notification.requestPermission();
@@ -1246,6 +1264,7 @@ async function enableNotify(){
   if(!token) throw new Error("알림 연결 정보를 받지 못했어요. 잠시 후 다시 눌러 주세요.");
   await api("saveToken", {token, device: navigator.userAgent.slice(0, 120)});
   store.set("notifyToken", token);
+  await setupForeground();
 }
 $("#notifyBtn").onclick = async () => {
   $("#notifyBtn").disabled = true; $("#notifyStatus").textContent = "알림을 연결하는 중…";
