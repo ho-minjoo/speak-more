@@ -176,12 +176,22 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <p>내 구글 시트의 <b>설정</b> 탭에 있는 <b>내 연결 링크</b>를 이 기기에서 한 번 열면 바로 연결돼요. 그다음부터는 PIN만 누르면 돼요.</p>
   </div>
   <details style="margin-top:18px;border:0">
-    <summary>링크 대신 주소를 직접 넣기</summary>
-    <label for="cfgUrl">웹 앱 주소</label>
-    <input type="url" id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <summary>연결 링크나 주소를 직접 붙여넣기</summary>
+    <label for="cfgUrl">내 연결 링크 또는 웹 앱 주소</label>
+    <input type="url" id="cfgUrl" placeholder="연결 링크 전체를 붙여넣어도 돼요">
     <div style="margin-top:14px"><button class="btn" id="connect">다음</button></div>
   </details>
   <p class="msg" id="setupMsg"></p>
+</section>
+
+<!-- ========== 카카오톡 안에서 열렸을 때 ========== -->
+<section class="view" id="kakao" hidden>
+  <h1>Speak More!</h1>
+  <div class="card" style="margin-top:22px">
+    <h2>크롬에서 열어 주세요</h2>
+    <p>카카오톡 안에서는 마이크와 알림이 잘 되지 않고, 연결 정보도 크롬과 따로 저장돼요. 아래 버튼을 누르면 크롬에서 열려요.</p>
+    <div style="margin-top:16px"><button class="btn" id="openChrome">크롬에서 열기</button></div>
+  </div>
 </section>
 
 <!-- ========== 로딩 ========== -->
@@ -366,12 +376,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 /* ================= Firebase 설정값 (주간 알림용) =================
    Firebase 콘솔에서 받은 값을 따옴표 안에 붙여넣으세요. */
 const FIREBASE = {
-  apiKey: "AIzaSyCbUhwaNLcggG_yaFikcgHwNUArhgkWMCs",
-  authDomain: "speak-more-6c533.firebaseapp.com",
-  projectId: "speak-more-6c533",
-  messagingSenderId: "749864209327",
-  appId: "1:749864209327:web:299c24daeb93c5e9ecfd5a",
-  vapidKey: "BNOKNBXbAw_VbVsbdgjdhwSWIULubVO5IvZqh425GCrqD9mDtXHY0_7rap6Ni4iZVcGoG_-qrFz247TPKYlGbjM"      // Cloud Messaging → 웹 푸시 인증서의 키 쌍
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  messagingSenderId: "",
+  appId: "",
+  vapidKey: ""      // Cloud Messaging → 웹 푸시 인증서의 키 쌍
 };
 
 /* ================= 공통 ================= */
@@ -456,8 +466,13 @@ document.addEventListener("keydown", e => {
   if(/^\d$/.test(e.key)) pressKey(e.key);
   else if(e.key === "Backspace") pressKey("del");
 });
+function extractExec(text){
+  text = text.trim();
+  try{ const c = new URL(text).searchParams.get("connect"); if(c) return c.trim(); }catch(e){}
+  return text;
+}
 $("#connect").onclick = () => {
-  const url = $("#cfgUrl").value.trim();
+  const url = extractExec($("#cfgUrl").value);
   if(!/^https:\/\/script\.google\.com\/.+\/exec/.test(url)){ $("#setupMsg").textContent = "웹 앱 주소는 https://script.google.com/ 으로 시작하고 /exec 로 끝나야 해요."; return; }
   $("#setupMsg").textContent = "";
   cfg = {url, code:""}; store.set("cfg", cfg); openPin();
@@ -1014,15 +1029,20 @@ $("#notifyTest").onclick = async () => {
 };
 
 /* ================= 시작 ================= */
+function openInChrome(){
+  location.href = "kakaotalk://web/openExternal?url=" + encodeURIComponent(location.href);
+}
+$("#openChrome").onclick = openInChrome;
+
 (async () => {
-  const q = new URLSearchParams(location.search);
-  const link = q.get("connect");
-  if(link){
-    if(/^https:\/\/script\.google\.com\//.test(link)){ cfg = {url: link, code: ""}; store.set("cfg", cfg); }
-    history.replaceState(null, "", location.pathname);
+  if(/KAKAOTALK/i.test(navigator.userAgent)){ show("kakao"); openInChrome(); return; }
+  const link = new URLSearchParams(location.search).get("connect");
+  let fromLink = false;
+  if(link && /^https:\/\/script\.google\.com\//.test(link) && link !== cfg.url){
+    cfg = {url: link, code: ""}; store.set("cfg", cfg); fromLink = true;
   }
   if(!cfg.url){ show("setup"); return; }
-  if(!cfg.code){ openPin(link ? "연결 링크를 확인했어요. PIN을 눌러 주세요." : ""); return; }
+  if(!cfg.code){ openPin(fromLink ? "연결 링크를 확인했어요. PIN을 눌러 주세요." : ""); return; }
   try{ await load(); goMain(); }
   catch(e){
     if(e.reason === "pin"){ cfg.code = ""; store.set("cfg", cfg); openPin("PIN이 바뀌었어요. 새 PIN을 눌러 주세요."); }
