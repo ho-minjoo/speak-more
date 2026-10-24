@@ -79,6 +79,28 @@ summary{cursor:pointer;font-size:.88rem;color:var(--muted)}
 .child .en{font-weight:400}
 .empty{text-align:center;padding:28px 16px;color:var(--muted)}
 
+/* 코스 트리 */
+.course{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 16px 12px;margin-bottom:12px;border-top:1px solid var(--line)}
+.course > summary{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 0;font-size:1rem;color:var(--ink);list-style:none}
+.course > summary::-webkit-details-marker{display:none}
+.course > summary::before{content:"▸";color:var(--muted);margin-right:6px}
+.course[open] > summary::before{content:"▾"}
+.c-name{font-weight:700;flex:1}
+.unit{margin-top:6px}
+.u-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0 4px}
+.u-name{font-size:.88rem;font-weight:500;color:var(--muted)}
+.lesson{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--bg);border:0;border-radius:12px;padding:11px 14px;margin-top:6px;cursor:pointer}
+.l-name{font-weight:500}
+.lesson .sub{font-size:.8rem}
+.mini-link{border:0;background:none;color:var(--muted);font:inherit;font-size:.8rem;padding:4px 0;cursor:pointer;text-decoration:underline;margin-top:8px}
+.u-head .mini-link{margin-top:0}
+.weak{margin-top:14px;padding:14px 16px;background:var(--miss-bg);border-color:transparent}
+.weak .row{margin-top:8px}
+.pk-course{border-bottom:1px solid var(--line);padding-bottom:6px}
+.pk-unit{padding-left:22px}
+.pk-lesson{padding-left:22px}
+.pk-unit .check,.pk-course > .check{border-bottom:0}
+
 /* 등록 미리보기 */
 .prev-row{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
 .prev-row input{padding:8px 10px;font-size:.93rem}
@@ -234,37 +256,71 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <div class="stat"><b id="stOrig">0</b><span>원래 표현</span></div>
     <div class="stat"><b id="stChild">0</b><span>확장 표현</span></div>
     <div class="stat"><b id="stTime">0분</b><span>누적 학습 시간</span></div>
-    <div class="stat"><b id="stWeak">0</b><span>다시 연습할 표현</span></div>
-  </div>
-
-  <div class="scope">
-    <label for="scope">연습 범위</label>
-    <select id="scope">
-      <option value="all">전체 표현</option>
-      <option value="orig">원래 표현만</option>
-      <option value="child">확장 표현만</option>
-      <option value="recent">최근 등록 20개(확장 포함)</option>
-      <option value="weak">다시 연습할 표현 (최근 테스트 80점 미만)</option>
-    </select>
   </div>
   <div class="btns">
-    <button class="btn" id="goStudy">공부하기</button>
-    <button class="btn" id="goTest">테스트</button>
+    <button class="btn" id="goAdd">표현 등록</button>
+    <button class="btn ghost" id="goPick">골라서 공부·테스트</button>
+  </div>
+  <div class="card weak" id="weakBox" hidden>
+    <p id="weakText"></p>
+    <div class="row"><button class="chip" id="weakStudy">공부하기</button><button class="chip" id="weakTest">테스트</button></div>
+  </div>
+  <h3>코스</h3>
+  <div id="tree"></div>
+</section>
+
+<!-- ========== 레슨 ========== -->
+<section class="view" id="lesson" hidden>
+  <div class="top"><button class="link" data-home>홈으로</button><button class="link" id="lEdit">레슨 수정</button></div>
+  <p class="sub" id="lPath"></p>
+  <h2 id="lName" style="font-size:1.4rem;margin:2px 0 0"></h2>
+  <div class="stats" id="lStats"></div>
+  <div class="btns">
+    <button class="btn" id="lStudy">공부하기</button>
+    <button class="btn" id="lTest">테스트</button>
   </div>
   <div class="btns">
-    <button class="btn ghost" id="goAdd">표현 등록</button>
-    <button class="btn ghost" id="goExpand">확장 표현 만들기</button>
+    <button class="btn ghost" id="lAdd">표현 추가</button>
+    <button class="btn ghost" id="lExpand">확장 표현 만들기</button>
   </div>
-
   <h3>표현 목록</h3>
-  <div class="list" id="list"></div>
+  <div class="list" id="lList"></div>
+</section>
+
+<!-- ========== 골라서 공부 ========== -->
+<section class="view" id="pick" hidden>
+  <div class="top"><button class="link" data-home>홈으로</button></div>
+  <h2>골라서 공부·테스트</h2>
+  <p class="sub">코스나 유닛을 체크하면 안의 레슨이 모두 선택돼요.</p>
+  <div id="pickTree" style="margin-top:12px"></div>
+  <label for="pickKind">포함할 표현</label>
+  <select id="pickKind">
+    <option value="all">원래 표현 + 확장 표현</option>
+    <option value="orig">원래 표현만</option>
+    <option value="child">확장 표현만</option>
+  </select>
+  <p class="sub" id="pickCount" style="margin-top:12px"></p>
+  <div class="btns">
+    <button class="btn" id="pickStudy">공부하기</button>
+    <button class="btn" id="pickTest">테스트</button>
+  </div>
 </section>
 
 <!-- ========== 표현 등록 ========== -->
 <section class="view" id="add" hidden>
-  <div class="top"><button class="link" data-home>홈으로</button></div>
+  <div class="top"><button class="link" data-back>뒤로</button></div>
   <h2>표현 등록</h2>
-  <p class="sub">텍스트를 붙여넣거나 엑셀·CSV 파일을 올려 주세요. 영어 한 줄, 한국어 한 줄이 번갈아 있거나 한 줄에 <code>영어 | 한국어</code>로 있으면 알아서 짝지어요.</p>
+
+  <div class="card">
+    <label for="aCourse" style="margin-top:0">코스</label>
+    <input type="text" id="aCourse" list="dlCourse" placeholder="예: 왕초보1">
+    <label for="aUnit">유닛 <span style="font-size:.8rem">(없으면 비워 두세요)</span></label>
+    <input type="text" id="aUnit" list="dlUnit" placeholder="예: 유닛1 일상적인 대화">
+    <label for="aLesson">레슨</label>
+    <input type="text" id="aLesson" list="dlLesson" placeholder="예: 친구와 약속 잡기">
+    <datalist id="dlCourse"></datalist><datalist id="dlUnit"></datalist><datalist id="dlLesson"></datalist>
+    <p class="sub" style="margin-top:8px;font-size:.85rem">이미 있는 이름을 고르면 그 레슨에 추가돼요.</p>
+  </div>
 
   <label for="addText">텍스트 붙여넣기</label>
   <textarea id="addText" placeholder="I have some experience in accounting.&#10;나는 회계 분야에서 일한 경험이 좀 있어요."></textarea>
@@ -274,7 +330,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <input type="file" id="addFile" accept=".xlsx,.xls,.csv" hidden>
     <button class="chip" id="copyOcr">캡처 변환 요청문 복사</button>
   </div>
-  <p class="sub" style="margin-top:10px;font-size:.85rem">스픽 캡처는 요청문을 복사해 캡처 이미지와 함께 Claude 채팅에 보내고, 받은 결과를 위 칸에 붙여넣으세요.</p>
+  <p class="sub" style="margin-top:10px;font-size:.85rem">영어·한국어가 한 줄씩 번갈아 있거나 <code>영어 | 한국어</code> 형식이면 알아서 짝지어요. 스픽 캡처는 요청문을 복사해 캡처와 함께 Claude 채팅에 보내고, 받은 결과를 붙여넣으세요.</p>
 
   <div id="addPreviewBox" hidden>
     <h3 id="addCount"></h3>
@@ -286,9 +342,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <!-- ========== 확장 표현 ========== -->
 <section class="view" id="expand" hidden>
-  <div class="top"><button class="link" data-home>홈으로</button></div>
+  <div class="top"><button class="link" data-back>뒤로</button></div>
   <h2>확장 표현 만들기</h2>
-  <p class="sub">확장할 표현을 고르고 요청문을 복사해 Claude 채팅에 보내세요. 받은 결과를 아래에 붙여넣으면 원래 표현과 묶여서 저장돼요.</p>
+  <p class="sub">확장할 표현을 고르고 요청문을 복사해 Claude 채팅에 보내세요. 받은 결과를 아래에 붙여넣으면 원래 표현과 묶여서 같은 레슨에 저장돼요.</p>
 
   <h3>1. 확장할 표현 고르기</h3>
   <div class="row" style="margin-top:0">
@@ -371,6 +427,19 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   </div>
 </dialog>
 
+<dialog id="setDlg">
+  <h2>레슨 수정</h2>
+  <p class="sub">이름을 바꾸거나, 다른 코스·유닛으로 옮길 수 있어요.</p>
+  <label for="sdCourse">코스</label><input type="text" id="sdCourse" list="dlCourse">
+  <label for="sdUnit">유닛</label><input type="text" id="sdUnit" list="dlUnit">
+  <label for="sdLesson">레슨</label><input type="text" id="sdLesson" list="dlLesson">
+  <div class="btns">
+    <button class="btn ghost" id="sdCancel">취소</button>
+    <button class="btn" id="sdSave">저장</button>
+  </div>
+  <button class="link" id="sdDelete" style="color:var(--miss);margin-top:12px">이 레슨 삭제</button>
+</dialog>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 /* ================= Firebase 설정값 (주간 알림용) =================
@@ -425,7 +494,7 @@ document.querySelectorAll("[data-home]").forEach(b => b.onclick = () => { render
 /* ================= 연결 ================= */
 async function load(){
   const j = await api("list");
-  items = j.items;
+  items = j.items.map(i => ({...i, course: i.course || "기존 표현", unit: i.unit || "", lesson: i.lesson || "처음 등록한 표현"}));
   cfg.role = j.role;
   if(j.role === "parent") await loadReport();
   else flushLogs();
@@ -481,10 +550,13 @@ function lock(){ cfg.code = ""; cfg.role = ""; store.set("cfg", cfg); openPin();
 $("#toSetup").onclick = lock;
 $("#lockParent").onclick = lock;
 
-/* ================= 홈 ================= */
+/* ================= 홈 · 코스 구조 ================= */
 const originals = () => items.filter(i => !i.parentId);
 const childrenOf = id => items.filter(i => i.parentId === id);
 const isWeak = i => i.testCount > 0 && i.testRecent !== null && i.testRecent < 80;
+const sameLesson = (a, b) => a.course === b.course && a.unit === b.unit && a.lesson === b.lesson;
+const lessonOf = l => items.filter(i => sameLesson(i, l));
+const pathOf = i => [i.course, i.unit, i.lesson].filter(Boolean).join(" › ");
 function ordered(list){
   const set = new Set(list.map(i => i.id)), out = [];
   originals().forEach(o => {
@@ -499,17 +571,93 @@ function metaText(i){
   else parts.push("테스트 전");
   return parts.join(" · ");
 }
+function avgRecent(list){
+  const t = list.filter(i => i.testCount > 0 && i.testRecent !== null);
+  return t.length ? Math.round(t.reduce((a,i) => a + i.testRecent, 0) / t.length) : null;
+}
+/* 코스 → 유닛 → 레슨 (등록한 순서대로) */
+let TREE = [], LESSONS = [];
+function buildTree(){
+  const courses = [], cMap = {};
+  LESSONS = [];
+  items.forEach(i => {
+    let C = cMap[i.course];
+    if(!C){ C = cMap[i.course] = {name: i.course, units: [], uMap: {}}; courses.push(C); }
+    let U = C.uMap[i.unit];
+    if(!U){ U = C.uMap[i.unit] = {name: i.unit, lessons: [], lMap: {}}; C.units.push(U); }
+    let L = U.lMap[i.lesson];
+    if(!L){ L = U.lMap[i.lesson] = {course: i.course, unit: i.unit, lesson: i.lesson, items: [], idx: LESSONS.length}; U.lessons.push(L); LESSONS.push(L); }
+    L.items.push(i);
+  });
+  TREE = courses;
+  return courses;
+}
+function lessonMeta(list){
+  const o = list.filter(i => !i.parentId).length, c = list.length - o, avg = avgRecent(list);
+  return `표현 ${o}개${c ? ` · 확장 ${c}개` : ""}${avg !== null ? ` · 테스트 평균 ${avg}점` : ""}`;
+}
 function renderHome(){
   const o = originals();
   $("#stOrig").textContent = o.length;
   $("#stChild").textContent = items.length - o.length;
   $("#stTime").textContent = fmtTime(items.reduce((a,i) => a + (i.seconds || 0), 0));
-  $("#stWeak").textContent = items.filter(isWeak).length;
-  if(!o.length){
-    $("#list").innerHTML = `<div class="empty">아직 표현이 없어요.<br>‘표현 등록’에서 스픽 문장을 붙여넣어 시작해 보세요.</div>`;
+  const weak = items.filter(isWeak);
+  $("#weakBox").hidden = !weak.length;
+  $("#weakText").textContent = `다시 연습할 표현 ${weak.length}개 (최근 테스트 80점 미만)`;
+  const courses = buildTree();
+  if(!courses.length){
+    $("#tree").innerHTML = `<div class="empty">아직 표현이 없어요.<br>‘표현 등록’에서 스픽 문장을 붙여넣어 시작해 보세요.</div>`;
     return;
   }
-  $("#list").innerHTML = [...o].reverse().map(x => {
+  $("#tree").innerHTML = courses.map((C, ci) => `
+    <details class="course" open>
+      <summary><span class="c-name">${esc(C.name)}</span><span class="sub">레슨 ${C.units.reduce((a,U) => a + U.lessons.length, 0)}개</span></summary>
+      ${C.units.map((U, ui) => `
+        <div class="unit">
+          ${U.name ? `<div class="u-head"><p class="u-name">${esc(U.name)}</p><button class="mini-link" data-ren="unit" data-c="${ci}" data-u="${ui}">이름 바꾸기</button></div>` : ""}
+          ${U.lessons.map(L => `<button class="lesson" data-li="${L.idx}"><span class="l-name">${esc(L.lesson)}</span><span class="sub">${lessonMeta(L.items)}</span></button>`).join("")}
+        </div>`).join("")}
+      <button class="mini-link" data-ren="course" data-c="${ci}">코스 이름 바꾸기</button>
+    </details>`).join("");
+}
+$("#tree").onclick = async e => {
+  const l = e.target.closest("[data-li]");
+  if(l){ openLesson(LESSONS[+l.dataset.li]); return; }
+  const r = e.target.closest("[data-ren]"); if(!r) return;
+  const C = TREE[+r.dataset.c];
+  if(r.dataset.ren === "course"){
+    const name = prompt("새 코스 이름", C.name);
+    if(name && name.trim() && name.trim() !== C.name) await moveSet({course: C.name}, {course: name.trim()});
+  } else {
+    const U = C.units[+r.dataset.u];
+    const name = prompt("새 유닛 이름", U.name);
+    if(name !== null && name.trim() !== U.name) await moveSet({course: C.name, unit: U.name}, {unit: name.trim()});
+  }
+};
+async function moveSet(match, set){
+  try{
+    await api("moveSet", {match, set});
+    items.forEach(i => { if(Object.keys(match).every(k => i[k] === match[k])) Object.assign(i, set); });
+    renderHome(); toast("바꿨어요."); return true;
+  }catch(e){ toast(e.message); return false; }
+}
+$("#goAdd").onclick = () => { curLesson = null; resetAdd(); show("add"); };
+$("#goPick").onclick = () => { renderPick(); show("pick"); };
+$("#weakStudy").onclick = () => startPractice("study", ordered(items.filter(isWeak)));
+$("#weakTest").onclick = () => startPractice("test", items.filter(isWeak));
+
+/* 뒤로: 레슨에서 왔으면 레슨으로 */
+function goBack(){
+  if(curLesson && lessonOf(curLesson).length){ renderLesson(); show("lesson"); }
+  else { renderHome(); show("home"); }
+}
+document.querySelectorAll("[data-back]").forEach(b => b.onclick = goBack);
+
+/* ================= 레슨 ================= */
+let curLesson = null;
+function openLesson(L){ curLesson = {course: L.course, unit: L.unit, lesson: L.lesson}; renderLesson(); show("lesson"); }
+function renderItems(origs){
+  return [...origs].reverse().map(x => {
     const kids = childrenOf(x.id);
     return `<div class="item">
       <p class="en">${esc(x.en)}</p><p class="ko">${esc(x.ko)}</p>
@@ -527,7 +675,15 @@ function renderHome(){
     </div>`;
   }).join("");
 }
-$("#list").onclick = async e => {
+function renderLesson(){
+  const list = lessonOf(curLesson), o = list.filter(i => !i.parentId), avg = avgRecent(list);
+  $("#lPath").textContent = [curLesson.course, curLesson.unit].filter(Boolean).join(" › ");
+  $("#lName").textContent = curLesson.lesson;
+  $("#lStats").innerHTML = [[o.length, "원래 표현"], [list.length - o.length, "확장 표현"], [avg === null ? "–" : avg + "점", "테스트 평균"]]
+    .map(([b, t]) => `<div class="stat"><b>${b}</b><span>${t}</span></div>`).join("");
+  $("#lList").innerHTML = renderItems(o) || `<div class="empty">이 레슨에 표현이 없어요.</div>`;
+}
+$("#lList").onclick = async e => {
   const b = e.target.closest("button[data-act]"); if(!b) return;
   const it = items.find(i => i.id === b.dataset.id); if(!it) return;
   if(b.dataset.act === "study") startPractice("study", [it, ...childrenOf(it.id)]);
@@ -538,40 +694,114 @@ $("#list").onclick = async e => {
     try{
       await api("delete", {id: it.id});
       items = items.filter(i => i.id !== it.id && i.parentId !== it.id);
-      renderHome(); toast("삭제했어요.");
+      toast("삭제했어요."); goBack();
     }catch(err){ toast(err.message); }
   }
 };
-function scopeList(){
-  const v = $("#scope").value;
-  if(v === "orig") return originals();
-  if(v === "child") return items.filter(i => i.parentId);
-  if(v === "weak") return ordered(items.filter(isWeak));
-  if(v === "recent"){
-    const recentO = originals().slice(-20).map(o => o.id);
-    return ordered(items.filter(i => recentO.includes(i.id) || recentO.includes(i.parentId)));
-  }
-  return ordered(items);
-}
-$("#goStudy").onclick = () => startPractice("study", scopeList());
-$("#goTest").onclick = () => startPractice("test", scopeList());
-$("#goAdd").onclick = () => { resetAdd(); show("add"); };
-$("#goExpand").onclick = () => { renderExpandList(); show("expand"); };
+$("#lStudy").onclick = () => startPractice("study", ordered(lessonOf(curLesson)));
+$("#lTest").onclick = () => startPractice("test", lessonOf(curLesson));
+$("#lAdd").onclick = () => { resetAdd(curLesson); show("add"); };
+$("#lExpand").onclick = () => { renderExpandList(); show("expand"); };
 
-/* 수정 */
+/* 레슨 수정(이름 바꾸기·옮기기·삭제) */
+$("#lEdit").onclick = () => {
+  $("#sdCourse").value = curLesson.course; $("#sdUnit").value = curLesson.unit; $("#sdLesson").value = curLesson.lesson;
+  fillLists("sd"); $("#setDlg").showModal();
+};
+$("#sdCancel").onclick = () => $("#setDlg").close();
+$("#sdSave").onclick = async () => {
+  const to = {course: $("#sdCourse").value.trim(), unit: $("#sdUnit").value.trim(), lesson: $("#sdLesson").value.trim()};
+  if(!to.course || !to.lesson){ toast("코스와 레슨 이름을 입력하세요."); return; }
+  if(await moveSet({...curLesson}, to)){ curLesson = to; $("#setDlg").close(); renderLesson(); }
+};
+$("#sdDelete").onclick = async () => {
+  const n = lessonOf(curLesson).length;
+  if(!confirm(`‘${curLesson.lesson}’ 레슨의 표현 ${n}개(확장 포함)를 모두 삭제할까요?\n연습 기록 시트의 기록은 남아 있어요.`)) return;
+  try{
+    await api("deleteSet", {match: curLesson});
+    items = items.filter(i => !sameLesson(i, curLesson));
+    $("#setDlg").close(); curLesson = null; renderHome(); show("home"); toast("레슨을 삭제했어요.");
+  }catch(e){ toast(e.message); }
+};
+
+/* 코스·유닛·레슨 이름 추천 목록 */
+function uniq(arr){ return [...new Set(arr.filter(Boolean))]; }
+function fillLists(prefix){
+  const c = $(`#${prefix}Course`).value.trim(), u = $(`#${prefix}Unit`).value.trim();
+  const opt = v => `<option value="${esc(v)}"></option>`;
+  $("#dlCourse").innerHTML = uniq(items.map(i => i.course)).map(opt).join("");
+  $("#dlUnit").innerHTML = uniq(items.filter(i => i.course === c).map(i => i.unit)).map(opt).join("");
+  $("#dlLesson").innerHTML = uniq(items.filter(i => i.course === c && i.unit === u).map(i => i.lesson)).map(opt).join("");
+}
+["aCourse","aUnit"].forEach(id => $("#" + id).addEventListener("input", () => fillLists("a")));
+["sdCourse","sdUnit"].forEach(id => $("#" + id).addEventListener("input", () => fillLists("sd")));
+
+/* 표현 수정 */
 let editing = null;
 function openEdit(it){ editing = it; $("#edEn").value = it.en; $("#edKo").value = it.ko; $("#editDlg").showModal(); }
 $("#edCancel").onclick = () => $("#editDlg").close();
 $("#edSave").onclick = async () => {
   const en = $("#edEn").value.trim(), ko = $("#edKo").value.trim();
   if(!en || !ko){ toast("영어와 한국어를 모두 입력하세요."); return; }
-  try{ await api("update", {id: editing.id, en, ko}); editing.en = en; editing.ko = ko; $("#editDlg").close(); renderHome(); toast("수정했어요."); }
+  try{ await api("update", {id: editing.id, en, ko}); editing.en = en; editing.ko = ko; $("#editDlg").close(); renderLesson(); toast("수정했어요."); }
   catch(e){ toast(e.message); }
 };
 
+/* ================= 골라서 공부 ================= */
+function renderPick(){
+  const courses = buildTree();
+  $("#pickTree").innerHTML = courses.length ? courses.map((C, ci) => `
+    <div class="pk-course">
+      <label class="check"><input type="checkbox" data-pc="${ci}"><b>${esc(C.name)}</b></label>
+      ${C.units.map((U, ui) => `
+        <div class="pk-unit">
+          ${U.name ? `<label class="check"><input type="checkbox" data-pu="${ci}-${ui}"><span>${esc(U.name)}</span></label>` : ""}
+          ${U.lessons.map(L => `<label class="check pk-lesson"><input type="checkbox" data-pl="${L.idx}"><span>${esc(L.lesson)}<br><span class="sub">${lessonMeta(L.items)}</span></span></label>`).join("")}
+        </div>`).join("")}
+    </div>`).join("") : `<p class="empty">먼저 표현을 등록해 주세요.</p>`;
+  updatePick();
+}
+function pickedItems(){
+  const kind = $("#pickKind").value;
+  const ids = [...document.querySelectorAll("#pickTree [data-pl]:checked")].map(c => +c.dataset.pl);
+  let list = ids.flatMap(i => LESSONS[i].items);
+  if(kind === "orig") list = list.filter(i => !i.parentId);
+  if(kind === "child") list = list.filter(i => i.parentId);
+  return list;
+}
+function updatePick(){
+  // 상위 체크 상태 맞추기
+  TREE.forEach((C, ci) => {
+    const set = (sel, boxes) => { const el = document.querySelector(sel); if(!el) return;
+      const on = boxes.filter(b => b.checked).length; el.checked = on === boxes.length && on > 0; el.indeterminate = on > 0 && on < boxes.length; };
+    const lessonBoxes = L => document.querySelector(`[data-pl="${L.idx}"]`);
+    C.units.forEach((U, ui) => set(`[data-pu="${ci}-${ui}"]`, U.lessons.map(lessonBoxes)));
+    set(`[data-pc="${ci}"]`, C.units.flatMap(U => U.lessons.map(lessonBoxes)));
+  });
+  const n = pickedItems().length;
+  $("#pickCount").textContent = n ? `선택한 표현 ${n}개` : "공부할 레슨을 골라 주세요.";
+  $("#pickStudy").disabled = $("#pickTest").disabled = !n;
+}
+$("#pickTree").onchange = e => {
+  const t = e.target;
+  if(t.dataset.pc !== undefined) TREE[+t.dataset.pc].units.forEach(U => U.lessons.forEach(L => document.querySelector(`[data-pl="${L.idx}"]`).checked = t.checked));
+  if(t.dataset.pu !== undefined){ const [ci, ui] = t.dataset.pu.split("-").map(Number); TREE[ci].units[ui].lessons.forEach(L => document.querySelector(`[data-pl="${L.idx}"]`).checked = t.checked); }
+  updatePick();
+};
+$("#pickKind").onchange = updatePick;
+$("#pickStudy").onclick = () => startPractice("study", ordered(pickedItems()));
+$("#pickTest").onclick = () => startPractice("test", pickedItems());
+
 /* ================= 표현 등록 ================= */
 let addDraft = [];
-function resetAdd(){ $("#addText").value = ""; addDraft = []; $("#addPreviewBox").hidden = true; $("#addMsg").textContent = ""; }
+function resetAdd(pref){
+  const last = store.get("lastSet") || {};
+  $("#aCourse").value = pref ? pref.course : (last.course || "");
+  $("#aUnit").value = pref ? pref.unit : (last.unit || "");
+  $("#aLesson").value = pref ? pref.lesson : "";
+  fillLists("a");
+  $("#addText").value = ""; addDraft = []; $("#addPreviewBox").hidden = true; $("#addMsg").textContent = "";
+}
 function parseText(txt){
   const out = [], seq = [];
   txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(line => {
@@ -629,11 +859,15 @@ $("#addSave").onclick = async () => {
   const valid = addDraft.filter(d => d.en.trim() && d.ko.trim());
   const missing = addDraft.length - valid.length;
   if(!valid.length){ $("#addMsg").textContent = "영어와 한국어가 모두 있는 표현이 없어요."; return; }
+  const set = {course: $("#aCourse").value.trim(), unit: $("#aUnit").value.trim(), lesson: $("#aLesson").value.trim()};
+  if(!set.course || !set.lesson){ $("#addMsg").textContent = "코스와 레슨 이름을 입력해 주세요."; window.scrollTo(0,0); return; }
   if(missing && !confirm(`빈칸이 있는 ${missing}개는 빼고 ${valid.length}개를 저장할까요?`)) return;
   $("#addSave").disabled = true;
   try{
-    const j = await api("add", {items: valid.map(d => ({en:d.en, ko:d.ko, source:"스픽"}))});
-    items.push(...j.items); toast(`${j.items.length}개를 저장했어요.`); renderHome(); show("home");
+    const j = await api("add", {items: valid.map(d => ({en:d.en, ko:d.ko, source:"스픽", ...set}))});
+    items.push(...j.items.map(i => ({...i, unit: i.unit || ""}))); store.set("lastSet", {course: set.course, unit: set.unit});
+    toast(`${j.items.length}개를 저장했어요.`);
+    curLesson = set; renderHome(); renderLesson(); show("lesson");
   }catch(e){ $("#addMsg").textContent = e.message; }
   finally{ $("#addSave").disabled = false; }
 };
@@ -641,8 +875,10 @@ $("#addSave").onclick = async () => {
 /* ================= 확장 표현 ================= */
 let expandSel = store.get("expandSel") || [];
 let expandDraft = [];
+const expandPool = () => curLesson ? lessonOf(curLesson).filter(i => !i.parentId) : originals();
 function renderExpandList(){
-  const o = originals();
+  const o = expandPool();
+  expandSel = expandSel.filter(id => o.some(x => x.id === id));
   if(!expandSel.length) expandSel = o.filter(x => !childrenOf(x.id).length).map(x => x.id);
   $("#expandList").innerHTML = o.length ? o.map(x => `
     <label class="check"><input type="checkbox" value="${x.id}" ${expandSel.includes(x.id) ? "checked" : ""}>
@@ -652,9 +888,9 @@ function renderExpandList(){
 }
 const readSel = () => [...document.querySelectorAll("#expandList input:checked")].map(c => c.value);
 const setSel = ids => document.querySelectorAll("#expandList input").forEach(c => c.checked = ids.includes(c.value));
-$("#selAll").onclick = () => setSel(originals().map(x => x.id));
+$("#selAll").onclick = () => setSel(expandPool().map(x => x.id));
 $("#selNone").onclick = () => setSel([]);
-$("#selNoChild").onclick = () => setSel(originals().filter(x => !childrenOf(x.id).length).map(x => x.id));
+$("#selNoChild").onclick = () => setSel(expandPool().filter(x => !childrenOf(x.id).length).map(x => x.id));
 $("#copyExpand").onclick = () => {
   expandSel = readSel(); store.set("expandSel", expandSel);
   if(!expandSel.length){ toast("확장할 표현을 하나 이상 고르세요."); return; }
@@ -704,9 +940,12 @@ $("#expandSave").onclick = async () => {
   if(!valid.length) return;
   $("#expandSave").disabled = true;
   try{
-    const j = await api("add", {items: valid.map(d => ({...d, source:"확장"}))});
+    const j = await api("add", {items: valid.map(d => {
+      const p = items.find(t => t.id === d.parentId) || {};
+      return {...d, source:"확장", course: p.course, unit: p.unit, lesson: p.lesson};
+    })});
     items.push(...j.items); expandSel = []; store.set("expandSel", []);
-    $("#expandText").value = ""; toast(`확장 표현 ${j.items.length}개를 저장했어요.`); renderHome(); show("home");
+    $("#expandText").value = ""; toast(`확장 표현 ${j.items.length}개를 저장했어요.`); goBack();
   }catch(e){ $("#expandMsg").textContent = e.message; }
   finally{ $("#expandSave").disabled = false; }
 };
@@ -781,7 +1020,7 @@ function renderCard(){
   const it = cur();
   stopListening();
   $("#prog").textContent = `${P.mode === "test" ? "테스트" : "공부하기"} · ${P.idx+1} / ${P.list.length}`;
-  $("#kind").textContent = it.parentId ? "확장 표현" : "원래 표현";
+  $("#kind").textContent = `${it.lesson} · ${it.parentId ? "확장 표현" : "원래 표현"}`;
   $("#pKo").textContent = it.ko;
   renderEn();
   $("#reveal").hidden = P.mode !== "test";
@@ -896,7 +1135,7 @@ function finish(){
     $("#doneTitle").textContent = "공부를 마쳤어요";
     $("#doneSub").textContent = `${seen}개 표현을 ${P.tries}번 말했어요 · ${mins}`;
     $("#doneList").innerHTML = "";
-    $("#doneBtns").innerHTML = `<button class="btn ghost" data-go="home">홈으로</button><button class="btn" data-go="test">이 범위로 테스트</button>`;
+    $("#doneBtns").innerHTML = `<button class="btn ghost" data-go="home">돌아가기</button><button class="btn" data-go="test">이 범위로 테스트</button>`;
   } else {
     const tried = P.list.filter(i => P.best[i.id] !== undefined);
     const low = P.list.filter(i => (P.best[i.id] ?? 0) < 80);
@@ -909,15 +1148,15 @@ function finish(){
     }).join("");
     P.retry = low;
     $("#doneBtns").innerHTML = low.length
-      ? `<button class="btn ghost" data-go="home">홈으로</button><button class="btn" data-go="retry">80점 미만 ${low.length}개 공부</button>`
-      : `<button class="btn" data-go="home" style="grid-column:1/-1">홈으로</button>`;
+      ? `<button class="btn ghost" data-go="home">돌아가기</button><button class="btn" data-go="retry">80점 미만 ${low.length}개 공부</button>`
+      : `<button class="btn" data-go="home" style="grid-column:1/-1">돌아가기</button>`;
     void tried;
   }
   show("done");
 }
 $("#doneBtns").onclick = e => {
   const b = e.target.closest("[data-go]"); if(!b) return;
-  if(b.dataset.go === "home"){ renderHome(); show("home"); }
+  if(b.dataset.go === "home"){ goBack(); }
   if(b.dataset.go === "test") startPractice("test", P.list);
   if(b.dataset.go === "retry") startPractice("study", ordered(P.retry));
 };
@@ -958,7 +1197,7 @@ function renderParent(){
       <span class="sc ${t.score < 80 ? "low" : ""}">${t.score}점</span></div>`;
   }).join("") : `<p class="sub">최근 4주 동안 본 테스트가 없어요.</p>`;
 
-  $("#pWeak").innerHTML = weak.length ? weak.map(i => `<div class="res-row"><div><p>${esc(i.ko)}</p><p class="sub">${esc(i.en)}</p></div>
+  $("#pWeak").innerHTML = weak.length ? weak.map(i => `<div class="res-row"><div><p>${esc(i.ko)}</p><p class="sub">${esc(i.en)}<br>${esc(pathOf(i))}</p></div>
     <span class="sc low">${i.testRecent}점</span></div>`).join("") : `<p class="sub">다시 연습할 표현이 없어요. 최근 테스트에서 모두 80점 이상이에요.</p>`;
 
   renderNotifyStatus();
