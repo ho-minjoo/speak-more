@@ -441,17 +441,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="firebase-config.js"></script>
 <script>
-/* ================= Firebase 설정값 (주간 알림용) =================
-   Firebase 콘솔에서 받은 값을 따옴표 안에 붙여넣으세요. */
-const FIREBASE = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  messagingSenderId: "",
-  appId: "",
-  vapidKey: ""      // Cloud Messaging → 웹 푸시 인증서의 키 쌍
-};
+/* Firebase 설정값은 firebase-config.js 파일에 있어요 (index를 새로 받아도 지워지지 않게 따로 둠) */
+const FIREBASE = window.FIREBASE_CONFIG || {};
 
 /* ================= 공통 ================= */
 const $ = s => document.querySelector(s);
@@ -1215,7 +1208,7 @@ const fbReady = () => !!(FIREBASE.apiKey && FIREBASE.projectId && FIREBASE.messa
 function renderNotifyStatus(){
   const when = schedule ? `매주 ${schedule.day}요일 ${schedule.hour}시~${schedule.hour + 1}시 사이` : "";
   let msg;
-  if(!fbReady()) msg = "앱에 Firebase 설정값이 아직 들어 있지 않아요.";
+  if(!fbReady()) msg = "firebase-config.js 파일에 Firebase 설정값 6개가 모두 들어 있지 않아요.";
   else if(!("Notification" in window) || !("serviceWorker" in navigator)) msg = "이 브라우저는 알림을 지원하지 않아요. 크롬으로 열어 주세요.";
   else if(Notification.permission === "denied") msg = "알림이 차단되어 있어요. 주소창 왼쪽 아이콘 → 권한 → 알림을 허용한 뒤 다시 눌러 주세요.";
   else if(Notification.permission === "granted" && store.get("notifyToken")) msg = `이 휴대폰으로 주간 요약 알림을 받고 있어요. (${when})`;
